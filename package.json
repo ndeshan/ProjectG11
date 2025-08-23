@@ -1,0 +1,6 @@
+{
+  "name": "laravel-g1-project",
+  "scripts": {
+    "build": "echo 'No build needed for Laravel'"
+  }
+}
