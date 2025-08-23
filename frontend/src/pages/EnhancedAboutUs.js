@@ -60,7 +60,7 @@ const EnhancedAboutUs = () => {
           Serving authentic Sri Lankan cuisine to our academic community since 2014
         </Typography>
         <Typography variant="body1" color="text.primary" sx={{ lineHeight: 1.7 }}>
-          Located in the beautiful coastal city of Galle, Southern Province, Sri Lanka
+          Located in the beautiful coastal city of Matara, Southern Province, Sri Lanka
         </Typography>
       </Box>
 
@@ -103,7 +103,7 @@ const EnhancedAboutUs = () => {
           <Typography variant="h4" gutterBottom fontWeight="bold">Our Story</Typography>
           <Typography variant="body1" paragraph sx={{ color: 'text.primary', lineHeight: 1.8 }}>
             The Faculty of Technology Canteen at University of Ruhuna has been the heart of campus dining since 2014. 
-            Located in the historic city of Galle, our canteen serves over 2000 students, faculty, and staff daily 
+            Located in the historic city of Matara, our canteen serves over 2000 students, faculty, and staff daily 
             with authentic Sri Lankan cuisine that reflects our rich cultural heritage.
           </Typography>
           <Typography variant="body1" paragraph sx={{ color: 'text.primary', lineHeight: 1.8 }}>
@@ -230,7 +230,7 @@ const EnhancedAboutUs = () => {
             <Typography variant="body1" paragraph>
               <strong>Faculty of Technology</strong><br/>
               University of Ruhuna<br/>
-              Hapugala, Galle 80000<br/>
+              Kamburupitiya, Matara<br/>
               Southern Province, Sri Lanka
             </Typography>
             <Typography variant="body2" color="text.primary">

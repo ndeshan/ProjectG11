@@ -289,7 +289,7 @@ const Contact = () => {
                 >
                   Faculty of Technology<br/>
                   University of Ruhuna<br/>
-                  Hapugala, Galle 80000<br/>
+                  Kamburupitiya, Matara<br/>
                   Sri Lanka
                 </Typography>
                 <AccessTime sx={{ fontSize: '3rem', color: '#29bf12', mb: 2 }} />

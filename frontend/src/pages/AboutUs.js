@@ -47,14 +47,16 @@ const AboutUs = () => {
       <Box sx={{ mb: 6 }}>
         <Typography variant="h4" gutterBottom sx={{ color: '#1a1a1a', fontWeight: 'bold' }}>Our Story</Typography>
         <Typography variant="body1" paragraph sx={{ color: '#2c2c2c', fontSize: '1.1rem', lineHeight: 1.7 }}>
-          The Faculty of Technology Canteen at University of Ruhuna has been the heart of campus dining since 2014. 
-          Located in the beautiful coastal city of Galle, our canteen serves over 2000 students, faculty, and staff daily 
-          with authentic Sri Lankan cuisine that reflects our rich cultural heritage.
+        The Faculty of Technology Canteen at the University of Ruhuna has been a vibrant hub for campus life since 2014. 
+        Nestled in the scenic coastal city of Matara, it welcomes over 2,000 students, lecturers, and staff each day. 
+        More than just a place to eat, the canteen is a space where friendships are built and ideas are shared over meals. 
+        With a focus on authentic Sri Lankan cuisine, it celebrates the island’s flavors, traditions, and cultural diversity, 
+        offering wholesome food that feels like home.
         </Typography>
         <Typography variant="body1" paragraph sx={{ color: '#2c2c2c', fontSize: '1.1rem', lineHeight: 1.7 }}>
-          Our mission is to provide nutritious, affordable, and delicious meals while supporting local farmers and 
-          suppliers. We take pride in serving traditional dishes like Rice & Curry, Kottu Rotti, and String Hoppers, 
-          prepared with fresh ingredients and authentic spices.
+        Our mission is to serve nutritious, affordable, and flavorful meals that bring people together. By sourcing fresh produce and spices from local farmers and suppliers, 
+        we ensure every dish supports the community while preserving authentic taste. From comforting Rice & Curry to the ever-popular Kottu Rotti and soft String Hoppers, 
+        each meal is prepared with care, tradition, and the rich flavors of Sri Lanka.
         </Typography>
       </Box>
 
