@@ -42,7 +42,7 @@ const RatingSystem = ({ itemId, itemName, currentRating, onRatingSubmit }) => {
             label="Write a review (optional)"
             value={review}
             onChange={(e) => setReview(e.target.value)}
-            placeholder="How was the taste? Quality? Service?"
+            placeholder="Tell us how was the taste? Quality? Service?"
           />
         </DialogContent>
         <DialogActions>
