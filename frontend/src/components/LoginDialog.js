@@ -12,6 +12,7 @@ const LoginDialog = ({ open, onClose, onLogin }) => {
     const userData = { name: formData.name || 'Demo Student', email: formData.email, studentId: formData.studentId || 'STU001' };
     onLogin(userData);
     onClose();
+    
   };
 
   return (
@@ -57,7 +58,7 @@ const LoginDialog = ({ open, onClose, onLogin }) => {
                 onChange={(e) => setFormData({...formData, studentId: e.target.value})}
               />
               <TextField
-                fullWidth margin="normal" label="Phone Number" required
+                fullWidth margin="normal" label="Telephone Number" required
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
               />
