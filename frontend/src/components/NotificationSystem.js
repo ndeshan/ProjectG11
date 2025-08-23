@@ -10,7 +10,7 @@ const NotificationSystem = () => {
   useEffect(() => {
     // Simulate notifications
     const timer = setTimeout(() => {
-      addNotification('Your Rice & Curry order is ready for pickup! 🍛', 'success');
+      addNotification('Your Rice & Curry order ready for pickup! 🍛', 'success');
     }, 10000);
 
     return () => clearTimeout(timer);
