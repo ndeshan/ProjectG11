@@ -32,8 +32,11 @@ dependencies:
     sdk: flutter
   webview_flutter: ^4.4.2
 
-  connectivity_plus: ^5.0.1
-  lottie: ^2.7.0
+  connectivity_plus: ^6.1.5
+  lottie: ^3.3.1
+  liquid_pull_to_refresh: ^3.0.0
+  glassmorphism: ^3.0.0
+  shimmer: ^3.0.0
 
     # check latest version
     
@@ -47,7 +50,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.4
 
 flutter_launcher_icons:
   android: true

@@ -1,10 +1,24 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:lottie/lottie.dart';
-import 'dart:async';
+import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
+import 'package:glassmorphism/glassmorphism.dart';
+import 'package:shimmer/shimmer.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Edge-to-edge immersive
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
+  );
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   runApp(const MyApp());
 }
 
@@ -17,8 +31,9 @@ class MyApp extends StatelessWidget {
       title: 'Smart Canteen',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        useMaterial3: true,
         brightness: Brightness.light,
-        primarySwatch: Colors.deepPurple,
+        colorSchemeSeed: Colors.deepPurple,
         scaffoldBackgroundColor: Colors.grey[100],
       ),
       home: const SplashScreen(),
@@ -26,7 +41,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// Splash Screen with Lottie animation
+/* ---------- Splash ---------- */
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -39,9 +54,12 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Future.delayed(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const HomePage(),
+          transitionsBuilder: (_, anim, __, child) =>
+              FadeTransition(opacity: anim, child: child),
+        ),
       );
     });
   }
@@ -50,12 +68,21 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Lottie.asset("assets/splash.json", width: 250, height: 250),
+        child: Hero(
+          tag: 'logo',
+          child: Lottie.asset(
+            "assets/splash.json",
+            width: 250,
+            height: 250,
+            fit: BoxFit.contain,
+          ),
+        ),
       ),
     );
   }
 }
 
+/* ---------- Home ---------- */
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -66,9 +93,11 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late final WebViewController _controller;
   bool isLoading = true;
-  double progressValue = 0.0;
   bool hasConnection = true;
-  late StreamSubscription<ConnectivityResult> connectivitySubscription;
+  bool showChip = false;
+
+  // updated: now StreamSubscription<List<ConnectivityResult>>
+  late StreamSubscription<List<ConnectivityResult>> _subscription;
 
   @override
   void initState() {
@@ -78,16 +107,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _initConnectivity() {
-    connectivitySubscription = Connectivity().onConnectivityChanged.listen((
-      result,
-    ) {
+    _subscription = Connectivity().onConnectivityChanged.listen((results) {
+      final result = results.isNotEmpty
+          ? results.first
+          : ConnectivityResult.none;
       setState(() {
         hasConnection = result != ConnectivityResult.none;
+        showChip = true;
       });
-
-      if (hasConnection && !isLoading) {
-        _controller.reload();
-      }
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) setState(() => showChip = false);
+      });
+      if (hasConnection && !isLoading) _controller.reload();
     });
   }
 
@@ -97,28 +128,10 @@ class _HomePageState extends State<HomePage> {
       ..setBackgroundColor(Colors.transparent)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (_) {
-            setState(() {
-              isLoading = true;
-              progressValue = 0.0;
-            });
-          },
-          onProgress: (progress) {
-            setState(() {
-              progressValue = progress / 100.0;
-            });
-          },
-          onPageFinished: (_) {
-            setState(() {
-              isLoading = false;
-              progressValue = 0.0;
-            });
-          },
-          onWebResourceError: (error) {
-            setState(() {
-              hasConnection = false;
-            });
-          },
+          onPageStarted: (_) => setState(() => isLoading = true),
+          onProgress: (p) {},
+          onPageFinished: (_) => setState(() => isLoading = false),
+          onWebResourceError: (_) => setState(() => hasConnection = false),
         ),
       )
       ..loadRequest(Uri.parse("https://hackethong1.web.app/"));
@@ -133,101 +146,165 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _retryConnection() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    setState(() {
-      hasConnection = connectivityResult != ConnectivityResult.none;
-    });
-
-    if (hasConnection) {
-      _controller.reload();
-    }
+    final res = await Connectivity().checkConnectivity();
+    setState(
+      () => hasConnection =
+          res.isNotEmpty && res.first != ConnectivityResult.none,
+    );
+    if (hasConnection) _controller.reload();
   }
 
   @override
   void dispose() {
-    connectivitySubscription.cancel();
+    _subscription.cancel();
     super.dispose();
   }
 
+  /* ---------- Build ---------- */
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
+        extendBody: true,
         body: hasConnection
-            ? RefreshIndicator(
-                color: Colors.deepPurple,
-                onRefresh: () async {
-                  _controller.reload();
-                },
-                child: Stack(
-                  children: [
-                    WebViewWidget(controller: _controller),
-                    if (isLoading)
-                      Center(
-                        child: Lottie.asset(
-                          "assets/loading.json",
-                          width: 150,
-                          height: 150,
-                        ),
-                      ),
-                  ],
-                ),
-              )
+            ? _buildWebView()
             : NoInternetScreen(onRetry: _retryConnection),
-        bottomNavigationBar: hasConnection
-            ? BottomNavigationBar(
-                backgroundColor: Colors.white,
-                selectedItemColor: Colors.deepPurple,
-                unselectedItemColor: Colors.grey,
-                elevation: 8,
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home),
-                    label: "Home",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.fastfood),
-                    label: "Menu",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.shopping_cart),
-                    label: "Orders",
-                  ),
-                ],
-                onTap: (index) {
-                  if (index == 0) {
-                    _controller.loadRequest(
-                      Uri.parse("https://hackethong1.web.app/"),
-                    );
-                  } else if (index == 1) {
-                    _controller.loadRequest(
-                      Uri.parse("https://hackethong1.web.app/menu"),
-                    );
-                  } else if (index == 2) {
-                    _controller.loadRequest(
-                      Uri.parse("https://hackethong1.web.app/orders"),
-                    );
-                  }
-                },
-              )
-            : null,
-        floatingActionButton: hasConnection
-            ? FloatingActionButton(
-                onPressed: () => _controller.reload(),
-                backgroundColor: Colors.deepPurple,
-                child: const Icon(Icons.refresh, color: Colors.white),
-              )
-            : null,
+        bottomNavigationBar: hasConnection ? _glassBottomBar() : null,
+        floatingActionButton: hasConnection ? _glassFAB() : null,
+      ),
+    );
+  }
+
+  /* ---------- WebView with pull-to-refresh ---------- */
+  Widget _buildWebView() {
+    return Stack(
+      children: [
+        LiquidPullToRefresh(
+          color: Colors.deepPurple,
+          // removed animSpeedMultiplier (not available in v3+)
+          onRefresh: () async => _controller.reload(),
+          child: WebViewWidget(controller: _controller),
+        ),
+        if (isLoading)
+          Shimmer.fromColors(
+            baseColor: Colors.deepPurple.shade100,
+            highlightColor: Colors.white,
+            child: Container(color: Colors.white),
+          ),
+        // Connection status chip
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOut,
+          top: showChip ? 70 : -100,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: Chip(
+              backgroundColor: hasConnection
+                  ? Colors.greenAccent.shade100
+                  : Colors.redAccent.shade100,
+              label: Text(
+                hasConnection ? 'Back online 🎉' : 'Offline 😵‍💫',
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /* ---------- Glass BottomBar ---------- */
+  Widget _glassBottomBar() {
+    return GlassmorphicContainer(
+      width: double.infinity,
+      height: 70,
+      borderRadius: 25,
+      blur: 20,
+      alignment: Alignment.center,
+      border: 1.5,
+      linearGradient: LinearGradient(
+        colors: [
+          Colors.white.withOpacity(0.25),
+          Colors.white.withOpacity(0.15),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderGradient: LinearGradient(
+        colors: [
+          Colors.deepPurple.shade200.withOpacity(0.4),
+          Colors.deepPurple.shade100.withOpacity(0.2),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      child: BottomNavigationBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        selectedItemColor: Colors.deepPurple.shade800,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.fastfood), label: "Menu"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: "Orders",
+          ),
+        ],
+        onTap: (i) {
+          final url = [
+            "https://hackethong1.web.app/",
+            "https://hackethong1.web.app/menu",
+            "https://hackethong1.web.app/orders",
+          ][i];
+          _controller.loadRequest(Uri.parse(url));
+        },
+      ),
+    );
+  }
+
+  /* ---------- Glass FAB ---------- */
+  Widget _glassFAB() {
+    return GlassmorphicContainer(
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      blur: 20,
+      border: 1.5,
+      linearGradient: LinearGradient(
+        colors: [
+          Colors.deepPurple.withOpacity(0.35),
+          Colors.deepPurple.withOpacity(0.25),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderGradient: LinearGradient(
+        colors: [
+          Colors.deepPurple.shade200.withOpacity(0.4),
+          Colors.deepPurple.shade100.withOpacity(0.2),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      child: FloatingActionButton(
+        onPressed: () => _controller.reload(),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: const Icon(Icons.refresh, color: Colors.white),
       ),
     );
   }
 }
 
-/// Custom No Internet Screen
+/* ---------- No Internet ---------- */
 class NoInternetScreen extends StatelessWidget {
   final VoidCallback onRetry;
-
   const NoInternetScreen({super.key, required this.onRetry});
 
   @override
@@ -269,11 +346,7 @@ class NoInternetScreen extends StatelessWidget {
               ),
               child: const Text(
                 'Retry',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
           ],
