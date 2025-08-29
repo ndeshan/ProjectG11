@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -10,14 +10,14 @@ const api = axios.create({
 });
 
 export const canteenAPI = {
-  getAll: () => api.get('/canteens'),
+  getAll: () => api.get('/api/canteens'),
   getById: (id) => api.get(`/canteens/${id}`),
   getQueueStatus: (id) => api.get(`/canteens/${id}/queue-status`),
 };
 
 export const menuAPI = {
-  getAll: (canteenId) => api.get('/menu', { params: { canteen_id: canteenId } }),
-  getByCanteen: (canteenId) => api.get('/menu', { params: { canteen_id: canteenId } }),
+  getAll: (canteenId) => api.get('/api/menu', { params: { canteen_id: canteenId } }),
+  getByCanteen: (canteenId) => api.get('/api/menu', { params: { canteen_id: canteenId } }),
   getByCategory: (canteenId, category) => api.get(`/menu/canteens/${canteenId}/category/${category}`),
   getFavorites: () => api.get('/menu/favorites'),
   checkAvailability: (itemId) => api.get(`/menu/item/${itemId}/availability`),
@@ -25,9 +25,9 @@ export const menuAPI = {
 
 export const orderAPI = {
   create: (orderData) => api.post('/orders', orderData),
-  getAll: () => api.get('/orders'),
+  getAll: () => api.get('/api/orders'),
   getById: (id) => api.get(`/orders/${id}`),
-  updateStatus: (id, status) => api.patch(`/orders/${id}/status`, { status }),
+  updateStatus: (id, status) => api.put(`/api/orders/${id}/status`, { status }),
 };
 
 export const authAPI = {

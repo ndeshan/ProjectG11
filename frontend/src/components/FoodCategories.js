@@ -3,20 +3,15 @@ import { Box, Typography } from '@mui/material';
 
 const FoodCategories = ({ selectedCategory, onCategoryChange }) => {
   const categories = [
-    { value: 'breakfast', label: 'Breakfast', emoji: '🌅', description: 'Rice & Curry, Rotti, Hoppers' },
-    { value: 'lunch', label: 'Lunch', emoji: '🍛', description: 'Rice & Curries, Kottu, Biriyani' },
-    { value: 'dinner', label: 'Dinner', emoji: '🌙', description: 'Fried Rice, Noodles, Devilled' },
-    { value: 'stationery', label: 'School Items', emoji: '📚', description: 'Pens, Books, Calculators' },
+    { value: 'breakfast', label: 'Breakfast', emoji: '🌅', description: 'Rice & Curry, String Hoppers' },
+    { value: 'lunch', label: 'Lunch', emoji: '🍛', description: 'Kottu, Fried Rice' },
+    { value: 'snacks', label: 'Snacks', emoji: '🍿', description: 'Samosa, Wade' },
+    { value: 'beverages', label: 'Beverages', emoji: '🥤', description: 'Tea, Coffee, Juice' },
   ];
 
   const getShapeStyles = (index) => {
-    const shapes = [
-      { borderRadius: '50%' }, // Circle
-      { borderRadius: '0' }, // Square
-      { borderRadius: '20px 0 20px 0' }, // Diamond-like
-      { borderRadius: '30px' } // Rounded rectangle
-    ];
-    return shapes[index % shapes.length];
+    // All buttons are circular
+    return { borderRadius: '50%' };
   };
 
   return (

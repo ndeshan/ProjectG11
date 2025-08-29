@@ -8,6 +8,7 @@ import { canteenAPI, orderAPI, menuAPI } from '../services/api';
 import { getMenuByCategory } from '../data/menuData';
 import { StaggerContainer, Scale } from '../components/animations';
 import { useResponsive } from '../components/MobileResponsive';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Food emoji mapping function
 const getFoodEmoji = (name, category) => {
@@ -51,6 +52,7 @@ const getFoodEmoji = (name, category) => {
 const Menu = () => {
   const { canteenId } = useParams();
   const { isMobile } = useResponsive();
+  const { isDark: darkMode } = useTheme();
   
   const [canteens, setCanteens] = useState([]);
   const [selectedCanteen, setSelectedCanteen] = useState(canteenId || '1');
@@ -108,7 +110,7 @@ const Menu = () => {
     try {
       // Try to fetch from API first, fallback to local data
       try {
-        const response = await menuAPI.getByCanteen(selectedCanteen);
+        const response = await menuAPI.getAll();
         const apiItems = response.data || [];
         
         // Filter by category if needed
@@ -249,6 +251,15 @@ const Menu = () => {
         existingOrders.push(newOrder);
         localStorage.setItem('user_orders', JSON.stringify(existingOrders));
         
+        // Trigger large notification
+        window.dispatchEvent(new CustomEvent('orderPlaced', {
+          detail: {
+            orderNumber: newOrder.order_number,
+            total: getTotalAmount(),
+            itemCount: cart.length
+          }
+        }));
+        
       } catch (apiError) {
         console.log('API not available, saving locally');
         
@@ -263,6 +274,15 @@ const Menu = () => {
         };
         existingOrders.push(newOrder);
         localStorage.setItem('user_orders', JSON.stringify(existingOrders));
+        
+        // Trigger large notification
+        window.dispatchEvent(new CustomEvent('orderPlaced', {
+          detail: {
+            orderNumber: newOrder.order_number,
+            total: getTotalAmount(),
+            itemCount: cart.length
+          }
+        }));
         
         setCart([]);
         saveCartToStorage([]);
@@ -286,7 +306,7 @@ const Menu = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className={`min-h-screen transition-all duration-300 ${darkMode ? 'bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-gradient-to-br from-gray-50 to-gray-100'}`}>
       <Container maxWidth="lg" sx={{ pt: 4, pb: 4 }}>
         <Typography 
           variant="h1" 

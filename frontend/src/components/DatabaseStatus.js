@@ -121,7 +121,7 @@ const DatabaseStatus = () => {
               ⚠️ Database not connected. Using local fallback data.
             </Typography>
             <Typography variant="body2" sx={{ color: '#666', mt: 1 }}>
-              To connect to database: Start backend server with "python start_backend.py"
+              To connect to database: Start backend server with "python simple_run.py"
             </Typography>
           </Box>
         )}

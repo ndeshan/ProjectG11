@@ -49,28 +49,49 @@ const EnhancedAdminDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
+      // Get current orders from state or localStorage
+      const currentOrders = orders.length > 0 ? orders : JSON.parse(localStorage.getItem('user_orders') || '[]');
+      
       // Calculate stats from real data
       const today = new Date().toDateString();
-      const todayOrders = orders.filter(order => 
-        new Date(order.created_at).toDateString() === today
-      );
+      const todayOrders = currentOrders.filter(order => {
+        const orderDate = order.created_at || order.timestamp;
+        return orderDate && new Date(orderDate).toDateString() === today;
+      });
       
-      const pendingOrders = orders.filter(order => 
+      const pendingOrders = currentOrders.filter(order => 
         ['pending', 'confirmed', 'preparing'].includes(order.status)
       );
       
-      const todayRevenue = todayOrders.reduce((sum, order) => 
-        sum + parseFloat(order.total_amount || 0), 0
-      );
+      // Calculate revenue from completed orders only
+      const completedOrders = currentOrders.filter(order => order.status === 'completed');
+      const todayRevenue = completedOrders
+        .filter(order => {
+          const orderDate = order.completed_at || order.created_at || order.timestamp;
+          return orderDate && new Date(orderDate).toDateString() === today;
+        })
+        .reduce((sum, order) => {
+          const amount = order.total_amount || order.total || 
+            (order.items && order.items.reduce((itemSum, item) => 
+              itemSum + (item.price * item.quantity || item.total || 0), 0)) || 0;
+          return sum + parseFloat(amount);
+        }, 0);
       
       setStats({
         total_orders_today: todayOrders.length,
         pending_orders: pendingOrders.length,
         revenue_today: todayRevenue,
         avg_preparation_time: 15,
-        total_users: 5, // From seed data
+        total_users: 5,
         active_menu_items: menuItems.length,
         customer_satisfaction: 4.6
+      });
+      
+      console.log('Dashboard stats updated:', {
+        todayOrders: todayOrders.length,
+        pendingOrders: pendingOrders.length,
+        completedOrders: completedOrders.length,
+        todayRevenue
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -82,16 +103,32 @@ const EnhancedAdminDashboard = () => {
       // Try to fetch from API first
       try {
         const response = await orderAPI.getAll();
-        const apiOrders = response.data || [];
-        setOrders(apiOrders);
+        let apiOrders = response.data || [];
+        
+        // If API returns array directly
+        if (Array.isArray(response)) {
+          apiOrders = response;
+        }
+        
         console.log('Admin loaded orders from API:', apiOrders.length, 'orders');
+        setOrders(apiOrders);
+        
+        // Also sync with localStorage
+        const storedOrders = JSON.parse(localStorage.getItem('user_orders') || '[]');
+        if (storedOrders.length > apiOrders.length) {
+          setOrders(storedOrders);
+          console.log('Using localStorage orders:', storedOrders.length, 'orders');
+        }
       } catch (apiError) {
         console.log('API not available, using local data');
         const storedOrders = JSON.parse(localStorage.getItem('user_orders') || '[]');
         setOrders(storedOrders);
+        console.log('Loaded from localStorage:', storedOrders.length, 'orders');
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
+      // Fallback to empty array with sample data
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -131,19 +168,77 @@ const EnhancedAdminDashboard = () => {
     return () => clearInterval(interval);
   };
 
-  const updateOrderStatus = async (orderId, status) => {
+  const updateOrderStatus = async (orderId, newStatus) => {
     try {
+      console.log(`Updating order ${orderId} to status: ${newStatus}`);
+      
+      // Try API first
+      try {
+        const response = await orderAPI.updateStatus(orderId, newStatus);
+        console.log('Order status updated via API:', response);
+      } catch (apiError) {
+        console.log('API not available, updating locally:', apiError.message);
+      }
+      
       // Update order status in localStorage
       const storedOrders = JSON.parse(localStorage.getItem('user_orders') || '[]');
-      const updatedOrders = storedOrders.map(order => 
-        order.id === orderId ? { ...order, status, updated_at: new Date().toISOString() } : order
-      );
+      const updatedOrders = storedOrders.map(order => {
+        if (order.id === orderId || order.id === parseInt(orderId)) {
+          return { 
+            ...order, 
+            status: newStatus, 
+            updated_at: new Date().toISOString(),
+            timestamp: new Date().toISOString(),
+            completed_at: newStatus === 'completed' ? new Date().toISOString() : order.completed_at
+          };
+        }
+        return order;
+      });
+      
+      console.log('Updated orders:', updatedOrders);
       localStorage.setItem('user_orders', JSON.stringify(updatedOrders));
       
       setOrders(updatedOrders);
-      fetchDashboardData();
+      
+      // Recalculate stats immediately
+      setTimeout(() => {
+        fetchDashboardData();
+      }, 100);
+      
+      // Show success message
+      alert(`Order ${orderId} status updated to ${newStatus}`);
     } catch (error) {
       console.error('Error updating order status:', error);
+      alert('Failed to update order status');
+    }
+  };
+
+  const deleteOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to delete this order?')) {
+      return;
+    }
+    
+    try {
+      console.log(`Deleting order ${orderId}`);
+      
+      // Update localStorage
+      const storedOrders = JSON.parse(localStorage.getItem('user_orders') || '[]');
+      const updatedOrders = storedOrders.filter(order => 
+        order.id !== orderId && order.id !== parseInt(orderId)
+      );
+      
+      localStorage.setItem('user_orders', JSON.stringify(updatedOrders));
+      setOrders(updatedOrders);
+      
+      // Recalculate stats
+      setTimeout(() => {
+        fetchDashboardData();
+      }, 100);
+      
+      alert(`Order ${orderId} deleted successfully`);
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      alert('Failed to delete order');
     }
   };
 
@@ -162,12 +257,24 @@ const EnhancedAdminDashboard = () => {
     const colors = {
       pending: 'warning',
       confirmed: 'info',
-      preparing: 'primary',
+      preparing: 'primary', 
       ready: 'success',
       completed: 'success',
       cancelled: 'error'
     };
     return colors[status] || 'default';
+  };
+
+  const getStatusIcon = (status) => {
+    const icons = {
+      pending: '⏳',
+      confirmed: '✓',
+      preparing: '🍳',
+      ready: '✅',
+      completed: '📦',
+      cancelled: '❌'
+    };
+    return icons[status] || '❓';
   };
 
   const StatCard = ({ title, value, icon, color, trend }) => (
@@ -321,57 +428,84 @@ const EnhancedAdminDashboard = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {orders.slice(0, 10).map((order) => (
-              <TableRow key={order.id} sx={{ '&:hover': { bgcolor: '#f9f9f9' } }}>
-                <TableCell sx={{ fontWeight: 600 }}>{order.order_number}</TableCell>
+            {orders.slice(0, 10).map((order, index) => {
+              const orderId = order.id || index + 1;
+              const orderNumber = order.order_number || `ORD${orderId}`;
+              const totalAmount = order.total_amount || order.total || 
+                (order.items && order.items.reduce((sum, item) => sum + (item.price * item.quantity || item.total || 0), 0)) || 150;
+              const orderStatus = order.status || 'pending';
+              
+              return (
+              <TableRow key={orderId} sx={{ '&:hover': { bgcolor: '#f9f9f9' } }}>
+                <TableCell sx={{ fontWeight: 600 }}>
+                  {orderNumber}
+                </TableCell>
                 <TableCell>Demo Student</TableCell>
-                <TableCell>{order.items?.length || 0} items</TableCell>
+                <TableCell>{order.items?.length || 1} items</TableCell>
                 <TableCell sx={{ fontWeight: 600, color: '#29bf12' }}>
-                  Rs. {order.total_amount?.toLocaleString()}
+                  Rs. {totalAmount.toLocaleString()}
                 </TableCell>
                 <TableCell>
                   <Chip 
-                    label={order.status?.toUpperCase()} 
-                    color={getStatusColor(order.status)}
+                    label={`${getStatusIcon(orderStatus)} ${orderStatus.toUpperCase()}`} 
+                    color={getStatusColor(orderStatus)}
                     size="small"
-                    sx={{ fontWeight: 600 }}
+                    sx={{ fontWeight: 600, minWidth: '100px' }}
                   />
                 </TableCell>
-                <TableCell>{new Date(order.created_at).toLocaleTimeString()}</TableCell>
                 <TableCell>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    {order.status === 'pending' && (
+                  {order.created_at ? 
+                    new Date(order.created_at).toLocaleTimeString() : 
+                    order.timestamp ? 
+                    new Date(order.timestamp).toLocaleTimeString() :
+                    new Date().toLocaleTimeString()
+                  }
+                </TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {orderStatus === 'pending' && (
                       <Button 
                         size="small" 
                         variant="contained" 
-                        color="info"
-                        onClick={() => updateOrderStatus(order.id, 'confirmed')}
+                        sx={{ bgcolor: '#2196f3', '&:hover': { bgcolor: '#1976d2' } }}
+                        onClick={() => updateOrderStatus(orderId, 'confirmed')}
                       >
-                        Confirm
+                        ✓ Confirm
                       </Button>
                     )}
-                    {order.status === 'confirmed' && (
+                    {orderStatus === 'confirmed' && (
                       <Button 
                         size="small" 
                         variant="contained" 
-                        color="primary"
-                        onClick={() => updateOrderStatus(order.id, 'preparing')}
+                        sx={{ bgcolor: '#ff9800', '&:hover': { bgcolor: '#f57c00' } }}
+                        onClick={() => updateOrderStatus(orderId, 'preparing')}
                       >
-                        Start Prep
+                        🍳 Start Prep
                       </Button>
                     )}
-                    {order.status === 'preparing' && (
+                    {orderStatus === 'preparing' && (
                       <Button 
                         size="small" 
                         variant="contained" 
-                        color="success"
-                        onClick={() => updateOrderStatus(order.id, 'ready')}
+                        sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#388e3c' } }}
+                        onClick={() => updateOrderStatus(orderId, 'ready')}
                       >
-                        Mark Ready
+                        ✅ Mark Ready
+                      </Button>
+                    )}
+                    {orderStatus === 'ready' && (
+                      <Button 
+                        size="small" 
+                        variant="contained" 
+                        sx={{ bgcolor: '#9c27b0', '&:hover': { bgcolor: '#7b1fa2' } }}
+                        onClick={() => updateOrderStatus(orderId, 'completed')}
+                      >
+                        📦 Complete
                       </Button>
                     )}
                     <IconButton 
                       size="small" 
+                      sx={{ color: '#29bf12' }}
                       onClick={() => {
                         setSelectedOrder(order);
                         setOrderDetailsOpen(true);
@@ -379,10 +513,18 @@ const EnhancedAdminDashboard = () => {
                     >
                       <Visibility />
                     </IconButton>
+                    <IconButton 
+                      size="small" 
+                      sx={{ color: '#f44336' }}
+                      onClick={() => deleteOrder(orderId)}
+                    >
+                      <Delete />
+                    </IconButton>
                   </Box>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import NotificationWindow from './NotificationWindow';
 import NotificationDisplay from './NotificationDisplay';
+import OrderNotificationWindow from './OrderNotificationWindow';
 
 const NotificationManager = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -48,6 +49,9 @@ const NotificationManager = () => {
     <>
       {/* Notification Display */}
       <NotificationDisplay />
+      
+      {/* Large Order Notification */}
+      <OrderNotificationWindow />
 
       {/* Security status indicator */}
       {isAuthenticated && (

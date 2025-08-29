@@ -75,40 +75,44 @@ const Navbar = () => {
             }}
           />
         </Box>
-        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
           <Typography 
             variant="h3" 
             component="div" 
             sx={{ 
               fontFamily: '"Playfair Display", "Georgia", serif',
               fontWeight: 700,
-              fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
+              fontSize: { xs: '1.2rem', sm: '1.8rem', md: '2.2rem' },
               color: '#29bf12',
               letterSpacing: '-0.02em',
-              lineHeight: 1.1,
-              textShadow: '2px 2px 4px rgba(41,191,18,0.15)'
+              lineHeight: 1,
+              textShadow: '2px 2px 4px rgba(41,191,18,0.15)',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
             }}
           >
-            {isMobile ? 'University of Ruhuna' : 'University of Ruhuna'}
+            University of Ruhuna
           </Typography>
-          {!isMobile && (
-            <Typography 
-              variant="h5" 
-              sx={{ 
-                fontFamily: '"Inter", sans-serif',
-                fontWeight: 500,
-                fontSize: '1.1rem',
-                color: darkMode ? '#b3b3b3' : '#454955',
-                letterSpacing: '0.02em',
-                mt: 0.5
-              }}
-            >
-              Digital Canteen Management System
-            </Typography>
-          )}
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              fontFamily: '"Inter", sans-serif',
+              fontWeight: 500,
+              fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
+              color: darkMode ? '#b3b3b3' : '#454955',
+              letterSpacing: '0.02em',
+              mt: 0.5,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            Digital Canteen Management System
+          </Typography>
         </Box>
         {/* Desktop Menu */}
-        <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2, alignItems: 'center' }}>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center', flexShrink: 0 }}>
           {navItems.map((item) => (
             <Button
               key={item.path}
@@ -117,10 +121,11 @@ const Navbar = () => {
               sx={{
                 color: darkMode ? '#ffffff' : '#454955',
                 fontWeight: 600,
-                fontSize: '0.95rem',
+                fontSize: '0.85rem',
                 textTransform: 'none',
-                px: 2.5,
-                py: 1.2,
+                px: 1.5,
+                py: 1,
+                whiteSpace: 'nowrap',
                 borderRadius: 3,
                 backgroundColor: location.pathname === item.path ? '#abff4f' : 'transparent',
                 border: location.pathname === item.path ? '2px solid #29bf12' : '2px solid transparent',
