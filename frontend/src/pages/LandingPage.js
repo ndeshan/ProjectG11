@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Button, Card } from '../components/ui';
+import { Button, Card } from '@mui/material';
 
 const LandingPage = () => {
   const features = [

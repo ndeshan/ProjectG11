@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Button, Card, Input } from '../components/ui';
+import { Button, Card, TextField as Input } from '@mui/material';
 
 // Contact icon mapping
 const getContactIcon = (title) => {

@@ -7,7 +7,7 @@ import SearchBar from '../components/SearchBar';
 import { canteenAPI, orderAPI, menuAPI } from '../services/api';
 import { getMenuByCategory } from '../data/menuData';
 import { StaggerContainer, Scale } from '../components/animations';
-import { useResponsive } from '../components/MobileResponsive';
+// Mobile responsive hook removed
 import { useTheme } from '../contexts/ThemeContext';
 
 // Food emoji mapping function
@@ -51,7 +51,7 @@ const getFoodEmoji = (name, category) => {
 
 const Menu = () => {
   const { canteenId } = useParams();
-  const { isMobile } = useResponsive();
+  const isMobile = false;
   const { isDark: darkMode } = useTheme();
   
   const [canteens, setCanteens] = useState([]);

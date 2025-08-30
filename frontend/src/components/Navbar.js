@@ -7,7 +7,7 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { DarkMode, LightMode } from '@mui/icons-material';
 import LoginDialog from './LoginDialog';
-import NotificationSystem from './NotificationSystem';
+
 import { useAdmin } from '../contexts/AdminContext';
 import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
 
@@ -221,7 +221,7 @@ const Navbar = () => {
           
           {user ? (
             <>
-              <NotificationSystem />
+
               <Avatar 
                 sx={{ cursor: 'pointer', ml: 2 }}
                 onClick={(e) => setAnchorEl(e.currentTarget)}

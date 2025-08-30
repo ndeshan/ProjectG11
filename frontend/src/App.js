@@ -11,7 +11,7 @@ import EnhancedOrders from './pages/EnhancedOrders';
 import EnhancedQueueStatus from './pages/EnhancedQueueStatus';
 import ProfessionalAboutUs from './pages/ProfessionalAboutUs';
 import EnhancedContact from './pages/EnhancedContact';
-import EnhancedAdminDashboard from './pages/EnhancedAdminDashboard';
+import CleanAdminDashboard from './pages/CleanAdminDashboard';
 import Profile from './pages/Profile';
 import Reviews from './pages/Reviews';
 import Footer from './components/Footer';
@@ -55,7 +55,8 @@ function App() {
                 <Route path="/contact" element={<Page><EnhancedContact /></Page>} />
                 <Route path="/reviews" element={<Page><Reviews /></Page>} />
                 <Route path="/profile" element={<Page><Profile /></Page>} />
-                <Route path="/admin" element={<Page><EnhancedAdminDashboard /></Page>} />
+                <Route path="/admin" element={<Page><CleanAdminDashboard /></Page>} />
+
               </Routes>
             </AnimatePresence>
           </ErrorBoundary>
